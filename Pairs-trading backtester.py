@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 pd.set_option('display.width', 1000)
 optimising = True
 out_of_sample = not optimising
-
+window = 252
 
 def returns_calc(prices):
     returns = []
@@ -34,21 +34,6 @@ class Stock:
         temp = pd.read_csv(filename)
         self.prices = temp['Close-Last']
         self.dates = (np.array(temp['Date'].tolist(), dtype='datetime64'))
-
-xom = Stock('XOM_OOS.csv')
-cvx = Stock('CVX_OOS.csv')
-window = 252
-
-
-alphas = [np.nan]*window
-betas = [np.nan]*window
-for i in range(window, len(cvx.prices)):
-    rolling_cvx_prices = cvx.prices[i - window:i]
-    rolling_xom_prices = xom.prices[i - window:i]
-    b, a, r, p, se = sp.stats.linregress(rolling_cvx_prices, rolling_xom_prices)
-    alphas.append(a)
-    betas.append(b)
-residuals = xom.prices - alphas - betas*cvx.prices
 
 def pl_tester(upper, lower):
     df = pd.DataFrame({'Date' : xom.dates,
@@ -177,6 +162,17 @@ def vary_upper_lower():
     return uppers, lowers, pl_results, annualised_sharpes, winrates, max_drawdowns, profit_factors, n_trades
 
 if optimising:
+    xom = Stock('XOM_training.csv')
+    cvx = Stock('CVX_training.csv')
+    alphas = [np.nan] * window
+    betas = [np.nan] * window
+    for i in range(window, len(cvx.prices)):
+        rolling_cvx_prices = cvx.prices[i - window:i]
+        rolling_xom_prices = xom.prices[i - window:i]
+        b, a, r, p, se = sp.stats.linregress(rolling_cvx_prices, rolling_xom_prices)
+        alphas.append(a)
+        betas.append(b)
+    residuals = xom.prices - alphas - betas * cvx.prices
     fig, axs = plt.subplots(2, 3, constrained_layout=True)
     uppers, lowers, pl_res, ann_sharpes, winrates, max_drawdowns, profitfactors, ntrades = vary_upper_lower()
 
@@ -229,9 +225,19 @@ if optimising:
     fig.colorbar(ntrades_map, ax=axs[1,2])
     fig.suptitle('Trading Backtest: XOM vs CVX')
 
-
 if out_of_sample:
-    #fig, axs = plt.subplots(2, 2, constrained_layout=True)
+    xom = Stock('XOM_OOS.csv')
+    cvx = Stock('CVX_OOS.csv')
+    alphas = [np.nan] * window
+    betas = [np.nan] * window
+    for i in range(window, len(cvx.prices)):
+        rolling_cvx_prices = cvx.prices[i - window:i]
+        rolling_xom_prices = xom.prices[i - window:i]
+        b, a, r, p, se = sp.stats.linregress(rolling_cvx_prices, rolling_xom_prices)
+        alphas.append(a)
+        betas.append(b)
+    residuals = xom.prices - alphas - betas * cvx.prices
+
     u_bound, l_bound = (1.8, -1.0)
     df , n_trades, trade_pl = pl_tester(u_bound, l_bound)
     mean_daily_return = df['daily p/l'].mean()
