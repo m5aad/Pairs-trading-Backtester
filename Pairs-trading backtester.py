@@ -237,7 +237,7 @@ if out_of_sample:
         alphas.append(a)
         betas.append(b)
     residuals = xom.prices - alphas - betas * cvx.prices
-
+# this is where you input your chosen signal bounds
     u_bound, l_bound = (1.8, -1.0)
     df , n_trades, trade_pl = pl_tester(u_bound, l_bound)
     mean_daily_return = df['daily p/l'].mean()
