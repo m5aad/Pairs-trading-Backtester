@@ -31,12 +31,12 @@ def reversion_checker(signals):
 
 class Stock:
     def __init__(self, filename):
-        temp = pd.read_csv(filename, nrows=1500)
+        temp = pd.read_csv(filename)
         self.prices = temp['Close-Last']
         self.dates = (np.array(temp['Date'].tolist(), dtype='datetime64'))
 
-xom = Stock('XOM.csv')
-cvx = Stock('CVX.csv')
+xom = Stock('XOM_OOS.csv')
+cvx = Stock('CVX_OOS.csv')
 window = 252
 
 
